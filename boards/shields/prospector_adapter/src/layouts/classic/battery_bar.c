@@ -6,6 +6,7 @@
 #include <zmk/events/battery_state_changed.h>
 #include <zmk/events/split_central_status_changed.h>
 #include <zmk/event_manager.h>
+#include <zmk/split_peripheral_count.h>
 
 #include <fonts.h>
 
