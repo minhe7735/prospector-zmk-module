@@ -3,7 +3,9 @@
 
 #include <zmk/display.h>
 #include <zmk/events/endpoint_changed.h>
+#if IS_ENABLED(CONFIG_ZMK_BLE)
 #include <zmk/events/ble_active_profile_changed.h>
+#endif
 #include <zmk/event_manager.h>
 #include <zmk/endpoints.h>
 #include <zmk/ble.h>
@@ -63,9 +65,14 @@ static void update_output_widget(struct zmk_widget_output *widget, uint8_t profi
     snprintf(profile_text, sizeof(profile_text), "%d", profile_index);
     lv_label_set_text(widget->profile_label, profile_text);
 
-    bool is_connected = zmk_ble_profile_is_connected(profile_index);
-    bool is_open = zmk_ble_profile_is_open(profile_index);
+    bool is_connected = false;
+    bool is_open = false;
     bool is_ble_active = (active_transport == ZMK_TRANSPORT_BLE);
+
+#if IS_ENABLED(CONFIG_ZMK_BLE)
+    is_connected = zmk_ble_profile_is_connected(profile_index);
+    is_open = zmk_ble_profile_is_open(profile_index);
+#endif
 
     lv_label_set_text(widget->links_label, SYMBOL_WAVES_UP);
     stop_breathing_anim(widget->links_label);
@@ -119,6 +126,7 @@ static int endpoint_changed_listener(const zmk_event_t *eh) {
     return ZMK_EV_EVENT_BUBBLE;
 }
 
+#if IS_ENABLED(CONFIG_ZMK_BLE)
 static int ble_active_profile_changed_listener(const zmk_event_t *eh) {
     const struct zmk_ble_active_profile_changed *event = as_zmk_ble_active_profile_changed(eh);
     if (event) {
@@ -134,12 +142,15 @@ static int ble_active_profile_changed_listener(const zmk_event_t *eh) {
     }
     return ZMK_EV_EVENT_BUBBLE;
 }
+#endif
 
 ZMK_LISTENER(widget_output_endpoint, endpoint_changed_listener);
 ZMK_SUBSCRIPTION(widget_output_endpoint, zmk_endpoint_changed);
 
+#if IS_ENABLED(CONFIG_ZMK_BLE)
 ZMK_LISTENER(widget_output_profile, ble_active_profile_changed_listener);
 ZMK_SUBSCRIPTION(widget_output_profile, zmk_ble_active_profile_changed);
+#endif
 
 int zmk_widget_output_init(struct zmk_widget_output *widget, lv_obj_t *parent) {
     widget->container = lv_obj_create(parent);
@@ -164,6 +175,7 @@ int zmk_widget_output_init(struct zmk_widget_output *widget, lv_obj_t *parent) {
     lv_obj_set_pos(widget->profile_label, 54, 1);
 
     if (sys_slist_is_empty(&widgets)) {
+#if IS_ENABLED(CONFIG_ZMK_BLE)
         active_profile_index = zmk_ble_active_profile_index();
         struct zmk_endpoint_instance selected = zmk_endpoint_get_selected();
         active_transport = selected.transport;

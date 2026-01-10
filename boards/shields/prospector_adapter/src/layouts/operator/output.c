@@ -2,7 +2,9 @@
 
 #include <zmk/display.h>
 #include <zmk/events/endpoint_changed.h>
+#if IS_ENABLED(CONFIG_ZMK_BLE)
 #include <zmk/events/ble_active_profile_changed.h>
+#endif
 #include <zmk/event_manager.h>
 #include <zmk/endpoints.h>
 #include <zmk/ble.h>
@@ -85,6 +87,7 @@ static int endpoint_changed_listener(const zmk_event_t *eh) {
     return ZMK_EV_EVENT_BUBBLE;
 }
 
+#if IS_ENABLED(CONFIG_ZMK_BLE)
 static int ble_active_profile_changed_listener(const zmk_event_t *eh) {
     const struct zmk_ble_active_profile_changed *event = as_zmk_ble_active_profile_changed(eh);
     if (event) {
@@ -97,12 +100,15 @@ static int ble_active_profile_changed_listener(const zmk_event_t *eh) {
     }
     return ZMK_EV_EVENT_BUBBLE;
 }
+#endif
 
 ZMK_LISTENER(widget_output_endpoint, endpoint_changed_listener);
 ZMK_SUBSCRIPTION(widget_output_endpoint, zmk_endpoint_changed);
 
+#if IS_ENABLED(CONFIG_ZMK_BLE)
 ZMK_LISTENER(widget_output_profile, ble_active_profile_changed_listener);
 ZMK_SUBSCRIPTION(widget_output_profile, zmk_ble_active_profile_changed);
+#endif
 
 static lv_obj_t *create_toggle_btn(lv_obj_t *parent, const char *text, int x) {
     lv_obj_t *btn = lv_obj_create(parent);
@@ -163,6 +169,7 @@ int zmk_widget_output_init(struct zmk_widget_output *widget, lv_obj_t *parent) {
     }
 
     if (sys_slist_is_empty(&widgets)) {
+#if IS_ENABLED(CONFIG_ZMK_BLE)
         active_profile_index = zmk_ble_active_profile_index();
         struct zmk_endpoint_instance selected = zmk_endpoint_get_selected();
         active_transport = selected.transport;
