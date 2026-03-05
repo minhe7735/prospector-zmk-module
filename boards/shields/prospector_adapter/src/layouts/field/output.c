@@ -196,6 +196,7 @@ int zmk_widget_output_init(struct zmk_widget_output *widget, lv_obj_t *parent) {
     if (sys_slist_is_empty(&widgets)) {
 #if IS_ENABLED(CONFIG_ZMK_BLE)
         active_profile_index = zmk_ble_active_profile_index();
+#endif
         struct zmk_endpoint_instance selected = zmk_endpoint_get_selected();
         active_transport = selected.transport;
 
